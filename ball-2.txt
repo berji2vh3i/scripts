@@ -1,0 +1,296 @@
+// var currentUser = user.name;
+// checkUser = false;
+// authenUser = '';
+// $.get('https://raw.githubusercontent.com/mhqbdicer/luckygames/master/ball.txt', function(data, status) {
+// }).done(function(data) {
+	// authenUser = JSON.parse(data);
+	// for (i = 0; i < authenUser.length; i++) if (authenUser[i] == currentUser) checkUser = true;
+	// if (checkUser == true) {
+		$('#gameContainer').html('<center><span id="notification">...</span></center><br> <span style="float: left;"><input id="basebetAmount" value="0.00000000" style="background: none; text-align: center; color: #fff;" placeholder="basebetAmount" autocomplete="off"> <input id="overBalance" value="0.00000000" style="background: none; text-align: center; color: #fff;" placeholder="overBalance" autocomplete="off"> <input id="underBalance" value="0.00000000" style="background: none; text-align: center; color: #fff;" placeholder="underBalance" autocomplete="off"></span> <span style="float: right;"><button id="min" onclick="min();">min()</button> <button id="start" onclick="start();">start()</button> <button id="stop" onclick="stop();">stop()</button> <button id="reset" onclick="reset();">reset()</button> <button id="hideStatic" onclick="hideStatic();">hideStatic()</button> <button id="showStatic" onclick="showStatic();">showStatic()</button></span><br><br> <div id="chart" style="height: 320px;"></div><br> <div id="static">...</div>');
+		$('#gameContainer').css('width', '75%');
+		$('#gameContainer').css('height', '100%');
+		$('#gameContainer').css('color', '#fff');
+		$('#gameContainer').css('font-size', '16px');
+		$('#gameContainer').css('margin', 'auto');
+		$('#static').css('text-align', 'center');
+		$('#body').css('background', 'linear-gradient(to bottom right,#352482,#f49578)');
+		$('#header').css('display', 'none');
+		$('#news').css('display', 'none');
+		$('#content').css('background', 'none');
+		$('#main').css('min-width', '100%');
+		$('#controlContainer').css('display', 'none');
+		$('#listContainer').css('display', 'none');
+		$('#frontText').css('display', 'none');
+		$('#footer').css('display', 'none');
+		$('#notification').html('Applied!');
+		$('#stop').prop('disabled', true);
+		randomizeSeed();
+		hideStatic();
+	// } else {
+		// alert('You do not have permission to use, contact the developer!');
+		// window.location.replace('https://www.facebook.com/mhqbbentre');
+	// }
+// });
+
+var run = false;
+basebetAmount = 0;
+balance = 0;
+overBalance = 0;
+underBalance = 0;
+largestBalance = 0;
+betAmount = 0;
+ballsArray = [];
+bet = 0;
+wagered = 0;
+profit = 0;
+profitWagered = 0;
+startTime = 0;
+resultBall = 0;
+onTime = 0;
+playTime = 0;
+playDay = 0;
+playHour = 0;
+playMinute = 0;
+playSecond = 0;
+speed = 0;
+round = 0;
+dsp = [];
+chart = '';
+color = '';
+$.getScript('https://canvasjs.com/assets/script/canvasjs.min.js').done(function (script, textStatus) {
+	dps = [{
+			x: 0,
+			y: 0
+		}
+	];
+	chart = new CanvasJS.Chart('chart', {
+			theme: 'light2',
+			zoomEnabled: true,
+			axisX: {
+				title: 'bet',
+				includeZero: false,
+			},
+			axisY: {
+				title: 'profit',
+				includeZero: false,
+			},
+			title: {
+				text: ' ',
+				fontSize: 20,
+				padding: 20
+			},
+			data: [{
+					type: 'stepLine',
+					dataPoints: dps
+				}
+			]
+		});
+	chart.render();
+});
+function updateChart(bet, profit, color) {
+	dps.push({
+		x: bet,
+		y: profit,
+		color: color
+	});
+	if (dps[dps.length - 2]) {
+		dps[dps.length - 2].lineColor = color;
+	}
+	if (dps.length > 1000) {
+		dps.shift();
+	}
+	chart.render();
+}
+function hideStatic() {
+	document.getElementById('static').hidden = true;
+}
+function showStatic() {
+	document.getElementById('static').hidden = false;
+}
+function min() {
+	$('#basebetAmount').val((0.00000001).toFixed(8));
+}
+function start() {
+	run = true;
+	startTime = new Date();
+	basebetAmount = parseFloat($('#basebetAmount').val());
+	overBalance = parseFloat($('#overBalance').val());
+	underBalance = parseFloat($('#underBalance').val());
+	betAmount = basebetAmount;
+	ballsArray = [0, 1, 2, 3, 4, 5];
+	$('#notification').html('Start!');
+	$('#basebetAmount').val(basebetAmount.toFixed(8));
+	$('#basebetAmount').prop('disabled', true);
+	$('#overBalance').val(overBalance.toFixed(8));
+	$('#overBalance').prop('disabled', true);
+	$('#underBalance').val(underBalance.toFixed(8));
+	$('#underBalance').prop('disabled', true);
+	$('#min').prop('disabled', true);
+	$('#start').prop('disabled', true);
+	$('#stop').prop('disabled', false);
+	$('#reset').prop('disabled', true);
+	doBet();
+}
+function stop() {
+	run = false;
+	$('#basebetAmount').prop('disabled', false);
+	$('#overBalance').prop('disabled', false);
+	$('#underBalance').prop('disabled', false);
+	$('#min').prop('disabled', false);
+	$('#start').prop('disabled', false);
+	$('#stop').prop('disabled', true);
+	$('#reset').prop('disabled', false);
+}
+function reset() {
+	run = false;
+	basebetAmount = 0;
+	balance = 0;
+	overBalance = 0;
+	underBalance = 0;
+	largestBalance = 0;
+	betAmount = 0;
+	ballsArray = [];
+	bet = 0;
+	wagered = 0;
+	profit = 0;
+	profitWagered = 0;
+	startTime = 0;
+	onTime = 0;
+	playTime = 0;
+	playDay = 0;
+	playHour = 0;
+	playMinute = 0;
+	playSecond = 0;
+	speed = 0;
+	round = 0;
+	dsp = [];
+	chart = '';
+	color = '';
+	$.getScript('https://canvasjs.com/assets/script/canvasjs.min.js').done(function (script, textStatus) {
+		dps = [{
+				x: 0,
+				y: 0
+			}
+		];
+		chart = new CanvasJS.Chart('chart', {
+				theme: 'light2',
+				zoomEnabled: true,
+				axisX: {
+					title: 'bet',
+					includeZero: false,
+				},
+				axisY: {
+					title: 'profit',
+					includeZero: false,
+				},
+				title: {
+					text: ' ',
+					fontSize: 20,
+					padding: 20
+				},
+				data: [{
+						type: 'stepLine',
+						dataPoints: dps
+					}
+				]
+			});
+		chart.render();
+	});
+	$('#static').html('...');
+	$('#notification').html('Reseted!');
+	return;
+}
+function doBet() {
+	if (run === true) {
+		jQuery.ajax({
+			url: "/ajx/",
+			type: "POST",
+			dataType: "html",
+			timeout: 6e4,
+			data: {
+				game: 'balls',
+				coin: $('#coin').val(),
+				betAmount: betAmount,
+				ballsArray: ballsArray,
+				clientSeed: $('#clientSeed').val(),
+				serverSeedHash: $('#serverSeedHash').html(),
+				action: 'playBet',
+				hash: user.hash
+			},
+			success: function (data) {
+				var data = JSON.parse(data);
+				result = data.result;
+				if (result === true) {
+					bet++;
+					onTime = new Date().getTime();
+					playTime = onTime - startTime;
+					playDay = Math.floor(playTime / (1000 * 60 * 60 * 24));
+					playHour = Math.floor((playTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					playMinute = Math.floor((playTime % (1000 * 60 * 60)) / (1000 * 60));
+					playSecond = Math.floor((playTime % (1000 * 60)) / 1000);
+					speed = parseFloat((bet / playTime) * 1000);
+					balance = parseFloat(data.balance);
+					wagered += parseFloat(betAmount);
+					profit += parseFloat(data.profit);
+					profitWagered = (wagered * 0.1) / 100;
+					if (balance > largestBalance) {
+						largestBalance = balance;
+					}
+					if (data.gameResult === 'win') {
+						color = '#352482';
+					} else {
+						color = '#f49578';
+					}
+					$('#serverSeedHash').html(data.serverSeedHash);
+					$('#notification').html('Betting ' + betAmount.toFixed(8) +' roll ' + data.resultBall + ' ' + data.gameResult + ' ' + parseFloat(data.profit).toFixed(8));
+					$('#static').html('<span style="float: left;">game = balls</span> <span style="float: right;">coin = ' + $('#coin').val() + '</span><br> <span style="float: left;">time = ' + playDay + ':' + playHour + ':' + playMinute + ':' + playSecond + '</span> <span style="float: right;">speed = ' + speed.toFixed(2) + '</span><br> <span style="float: left;">balance = ' + balance.toFixed(8) + '</span> <span style="float: right;">wagered = ' + wagered.toFixed(8) + '</span><br> <span style="float: left;">profit = ' + profit.toFixed(8) + '</span> <span style="float: right;">profitWagered = ' + profitWagered.toFixed(8) + '</span>');
+					updateChart(bet, profit, color);
+					if (betAmount >= balance) {
+						stop();
+						$('#notification').html('Lose!');
+						return;
+					} else {
+						if (overBalance != 0 && balance >= overBalance) {
+							stop();
+							$('#notification').html('Over balance!');
+							return;
+						} else if (underBalance != 0 && balance <= underBalance) {
+							stop();
+							$('#notification').html('Under balance!');
+							return;
+						} else {
+							if (balance >= largestBalance) {
+								randomizeSeed();
+								betAmount = basebetAmount;
+							} else {
+								if (data.resultBall === 10) {
+									ballsArray = [0,1];
+								}
+								if (data.resultBall === 0) {
+									ballsArray = [9,10];
+								}
+								if (data.resultBall <5 && data.resultBall > 0) {
+									ballsArray = [6, 7, 8, 9, 5, 10];
+								} else if (data.resultBall >5 && data.resultBall < 10) {
+									ballsArray = [0, 1, 2, 3, 4, 5];
+								}
+								betAmount *= 1.15;
+							}
+						}
+					}
+					doBet();
+				}
+			},
+			error: function (xhr, ajaxOptions, throwagerednError) {},
+			timeout: function (xhr, ajaxOptions, throwagerednError) {
+				check = true;
+			},
+			abetort: function (xhr, ajaxOptions, throwagerednError) {
+				check = true;
+			}
+		});
+	} else {
+		$('#notification').html('Stopped!');
+		return;
+	}
+}

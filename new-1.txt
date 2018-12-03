@@ -1,0 +1,161 @@
+
+$("#gameContainer").html('<div id="chart"></div>');
+$("#gameContainer").css("width", "1000px");
+$("#gameContainer").css("margin", "auto");
+var a = prompt("input base bet amount", "0.00000000");
+var b = a;
+var bb = 0;
+var c = 50;
+var d = 'over';
+var e = $("#clientSeed").val();
+var f = $("#serverSeedHash").html();
+var g = 0;
+var h = 0;
+var i = 0;
+var j = 0;
+var jj = 0;
+var p = 0;
+var k = 0;
+var z = 0;
+var w = 0;
+var m = '';
+var dps = [];
+var chart;
+$.getScript('https://canvasjs.com/assets/script/canvasjs.min.js').done(function (script, textStatus) {
+	dps = [{
+			x: 0,
+			y: 0
+		}
+	];
+	chart = new CanvasJS.Chart('chart', {
+			theme: 'light2',
+			zoomEnabled: true,
+			axisX: {
+				title: 'bet',
+				includeZero: false,
+			},
+			axisY: {
+				title: 'profit',
+				includeZero: false,
+			},
+			title: {
+				text: 'Viral BOT v2 By Mai Hoang Quoc Bao',
+				fontSize: 20,
+				padding: 20
+			},
+			data: [{
+					type: 'stepLine',
+					dataPoints: dps
+				}
+			]
+		});
+	chart.render();
+});
+function updateChart() {
+	dps.push({
+		x: g,
+		y: k,
+		color: m
+	});
+	if (dps[dps.length - 2]) {
+		dps[dps.length - 2].lineColor = m;
+	}
+	if (dps.length > 1000) {
+		dps.shift();
+	}
+	chart.render();
+}
+setTimeout(function dobet() {
+	jQuery.ajax({
+		url: 'https://trustdice.com/viralbot/v2/',
+		type: 'GET',
+		data: {
+			userName: user.name,
+			clientSeed: e,
+			serverSeedHash: f
+		},
+		success: function (reso) {
+			var rso = JSON.stringify(reso);
+			var resu = JSON.parse(rso);
+			if (resu.status === "success") {
+				w = resu.w;
+				if (resu.resultNumber > 98) {
+					c = 98;
+				} else if (resu.resultNumber < 1) {
+					c = 1;
+				} else {
+					c = resu.resultNumber;
+				}
+				z = resu.z;
+				jQuery.ajax({
+					url: "https://play." + user.domain + "/ajx/",
+					type: "POST",
+					dataType: "html",
+					timeout: 6e4,
+					data: {
+						game: "dice",
+						session: getCookie("SESSION"),
+						coin: $("#coin").val(),
+						betAmount: b,
+						prediction: c,
+						direction: d,
+						clientSeed: e,
+						serverSeedHash: f,
+						action: "playBet",
+						hash: user.hash
+					},
+					success: function (data) {
+						var res = JSON.parse(data);
+						if (res.result === true) {
+							$("#balance").val(res.balance);
+							g++;
+							j = parseFloat(res.balance);
+							k += parseFloat(res.profit);
+							f = res.serverSeedHash;
+							if (res.gameResult === "win") {
+								h++;
+								m = 'green';
+							} else {
+								i++;
+								m = 'red';
+							}
+							if (g % 2 === 0) {
+								d = 'under';
+							} else {
+								d = 'over';
+							}
+							j >= jj ? jj = j : jj = jj;
+							if (res.gameResult === "win") {
+								p = 0;
+								b = a;
+							} else {
+								if (resu.resultNumber > 50){
+
+									c= 49;
+									d = 'under';
+								} else {
+									c= 49;
+									d = 'over';
+								}
+								b *= 2;
+
+							}
+							b >= bb ? bb = b : bb = bb;
+							console.clear();
+							console.log("balance = " + j.toFixed(8));
+							console.log("profit = " + k.toFixed(8));
+							console.log("maxbet = " + parseFloat(bb).toFixed(8));
+							updateChart();
+							dobet();
+						} else {
+							setInterval(dobet(), 5e2);
+						}
+					}
+				});
+			} else {
+				alert(resu.msg);
+				window.location.reload();
+			}
+		}
+	});
+}, 1e3);

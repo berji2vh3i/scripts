@@ -1,0 +1,103 @@
+let bethigh = false, basebet = (0.00000001).toFixed(8), check = 0, profit = 0, jump =0
+document.getElementById('bet').value = basebet
+function dobet() {
+    checklog()
+    document.getElementById('ubal').style.color = '#000000'
+    document.getElementById('bt').style.display = 'none'
+    document.getElementById('lola').style.display = 'block'
+    document.getElementById('error').style.display = 'none'
+    document.getElementById('done').style.display = 'none'
+    prognoz = document.getElementById('prognoznow').value
+    document.getElementById('res').innerHTML = ''
+    a = document.getElementById('tipv').value
+    b = document.getElementById('po').value
+    c = document.getElementById('ch').value
+    d = 10
+    bm = document.getElementById('tip').value
+    bal = document.getElementById('_balans').value
+    bet = document.getElementById('bet').value
+    prognoz = document.getElementById('prognoznow').value
+    showtab = document.getElementById('showtab').value
+    bethigh == true ? bm = 2 : bm = 1
+    req = new Subsys_JsHttpRequest_Js()
+    req.onreadystatechange = function () {
+        if (req.readyState == 4) {
+            if (req.responseJS.err == 0) {
+                document.getElementById('prognoznow').value = 49
+                profit += parseFloat(req.responseJS.profit)
+                if (req.responseJS.profit >= 0) {
+                    document.getElementById('ubal').style.color = 'GREEN'
+                    document.getElementById('bet').value = basebet
+			check += 1
+			jump =0
+                 	if ( check > 120){
+				check =0 
+				bethigh = true
+				document.getElementById('prognoznow').value = 80
+				document.getElementById('bet').value = basebet * 100
+				jump += 1
+			}
+
+                    else {
+				if ( jump > 0){
+					document.getElementById('prognoznow').value = 90
+					document.getElementById('bet').value = (document.getElementById('bet').value * 2).toFixed(8)
+					bethigh =false
+				}
+				document.getElementById('prognoznow').value = 49
+                       		document.getElementById('bet').value = (document.getElementById('bet').value * 3).toFixed(8)
+                  	}
+                }
+                else {
+                    document.getElementById('ubal').style.color = 'RED'
+                    document.getElementById('bet').value = (document.getElementById('bet').value * 2).toFixed(8)
+                }
+                console.clear()
+                console.log('check = ' + check)
+                console.log('profit = ' + profit.toFixed(8))
+                setTimeout(function () {
+                    document.getElementById('ubal').style.color = '#000000'
+                    dobet()
+                }, 2e2)
+                document.getElementById('ubal').innerHTML = '' + req.responseJS.showbalans
+                document.getElementById('_balans').value = req.responseJS.balans
+                if (req.responseJS.mob == 0) latest()
+                if (showtab == 1) {
+                    mybets()
+                }
+            }
+            else {
+                if (req.responseJS.err2 == 0) {
+                    document.getElementById('error').style.display = 'block'
+                    document.getElementById('error').innerHTML = req.responseJS.err
+                }
+                else {
+                    if (req.responseJS.mob == 0) {
+                        lay(450, 350, '/h.php?error=' + req.responseJS.err)
+                    }
+                    else {
+                        document.getElementById('error').style.display = 'block'
+                        document.getElementById('error').innerHTML = req.responseJS.err + '<div style="position: absolutetop: 2px right: 9px"><a href="javascript:void(0)" onclick="tocl(\'error\')"><img src="/i/cl.png"></a></div>'
+                    }
+                }
+            }
+            document.getElementById('lola').style.display = 'none'
+            document.getElementById('bt').style.display = 'block'
+        }
+    }
+    req.caching = false
+    req.open('POST', '/js/game.php', true)
+    req.send({
+        a: a,
+        b: b,
+        c: c,
+        d: d,
+        bm: bm,
+        bal: bal,
+        bet: bet,
+        prognoz: prognoz
+    })
+}
+setTimeout(function () {
+    dobet()
+}, 1e3)

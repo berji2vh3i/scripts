@@ -1,0 +1,192 @@
+var base_bet_amount = 0.01;
+var bet_amount = base_bet_amount;
+var csrf_token = $('#csrf_token').val();
+var over_field = null;
+var win_chance = 34;
+var profit = 0;
+var run = false;
+var bet = 0;
+var win = 0;
+var win_streak = 0
+var lose = 0;
+var lose_streak = 0;
+var current_streak = 0;
+function reset() {
+    base_bet_amount = 0.01;
+    bet_amount = base_bet_amount;
+    csrf_token = $('#csrf_token').val();
+    over_field = null;
+    win_chance = 34;
+    profit = 0;
+    run = false;
+    bet = 0;
+    win = 0;
+    win_streak = 0
+    lose = 0;
+    lose_streak = 0;
+    current_streak = 0;
+}
+function start() {
+    reset();
+    run = true;
+    setTimeout(function () {
+        console.log('Start()');
+        send_bet();
+    }, 1e3);
+}
+function stop() {
+    run = false;
+}
+function send_bet() {
+    if (run  == true) {
+        $.post('/send_bet/', {bet_amount: bet_amount, csrf_token: csrf_token, over_field: over_field, win_chance: win_chance}, function (result) {
+            if (result.data.errors != null) {
+                setInterval(function () {
+                    send_bet();
+                }, 1e3);
+            }
+            else {
+                bet += 1;
+                profit += parseFloat(result.data.profit);
+                $('li.nav-link').html('Current balance: ' + parseFloat(result.data.balance).toFixed(2) + '<br>Current profit: ' + profit.toFixed(2));
+                if (result.data.win == true) {
+                    win += 1;
+                    win_streak += 1;
+                }
+                else {
+                    lose += 1;
+                    lose_streak += 1;
+                }
+                if (result.data.win == true) {
+                    win_chance = 34;
+                    bet_amount = base_bet_amount;
+                }
+                else {
+                    if (lose_streak == 1) {
+                        win_chance = 31;
+                        bet_amount *= 1.6;
+                    }
+                    else if (lose_streak == 2) {
+                        win_chance = 29;
+                        bet_amount *= 1.555;
+                    }
+                    else if (lose_streak == 3) {
+                        win_chance = 25;
+                        bet_amount *= 1.52;
+                    }
+                    else if (lose_streak == 4) {
+                        win_chance = 23;
+                        bet_amount *= 1.48;
+                    }
+                    else if (lose_streak == 5) {
+                        win_chance = 21.5;
+                        bet_amount *= 1.46;
+                    }
+                    else if (lose_streak == 6) {
+                        win_chance = 19;
+                        bet_amount *= 1.42;
+                    }
+                    else if (lose_streak == 7) {
+                        win_chance = 15;
+                        bet_amount *= 1.38;
+                    }
+                    else if (lose_streak == ?? {
+                        win_chance = 12;
+                        bet_amount *= 1.33;
+                    }
+                    else if (lose_streak == 9) {
+                        win_chance = 10;
+                        bet_amount *= 1.3;
+                    }
+                    else if (lose_streak == 10) {
+                        win_chance = 7.5;
+                        bet_amount *= 1.25;
+                    }
+                    else if(lose_streak == 11) {
+                        win_chance = 7;
+                        bet_amount *= 1.25;
+                    }
+                    else if(lose_streak == 12) {
+                        win_chance = 6.5;
+                        bet_amount *= 1.25;
+                    
+                    }
+                    else if(lose_streak == 13) {
+                        win_chance = 6;
+                        bet_amount *= 1.25;
+                    }
+                    else if(lose_streak == 14) {
+                        win_chance = 5;
+                        bet_amount *= 1.25;
+                    }
+                    else if (lose_streak == 15) {
+                        win_chance = 5;
+                        bet_amount *= 1.25;
+                    }
+                    else if (lose_streak == 16) {
+                        win_chance = 8;
+                        bet_amount *= 1.26;
+                    }
+                    else if (lose_streak == 17) {
+                        win_chance = 11;
+                        bet_amount *= 1.29;
+                    }
+                    else if (lose_streak == 18) {
+                        win_chance = 14;
+                        bet_amount *= 1.32;
+                    }
+                    else if (lose_streak == 19) {
+                        win_chance = 17;
+                        bet_amount *= 1.35;
+                    }
+                    else if (lose_streak == 20) {
+                        win_chance = 19;
+                        bet_amount *= 1.38;
+                    }
+                    else if (lose_streak == 21) {
+                        win_chance = 21;
+                        bet_amount *= 1.41;
+                    }
+                    else if (lose_streak == 22) {
+                        win_chance = 23;
+                        bet_amount *= 1.43;
+                    }
+                    else if (lose_streak == 23) {
+                        win_chance = 26;
+                        bet_amount *= 1.46;
+                    }
+                    else if (lose_streak == 24) {
+                        win_chance = 27;
+                        bet_amount *= 1.49;
+                    }
+                    else if (lose_streak == 25) {
+                        win_chance = 30;
+                        bet_amount *= 1.52;
+                    }
+                    else if (lose_streak == 26) {
+                        win_chance = 35;
+                        bet_amount *= 1.56;
+                    }
+                    else if (lose_streak == 27) {
+                        win_chance = 37;
+                        bet_amount *= 1.6;
+                    }
+                    else if (lose_streak == 28) {
+                        win_chance = 40;
+                        bet_amount *= 1.635;
+                    }
+                    else if (lose_streak > 28) {
+                        win_chance = 45;
+                        bet_amount *= 1.8;
+                    }
+                }
+                setTimeout(function () {
+                    send_bet();
+                }, 3e3);
+            }
+        });
+    }
+    else {
+        console.log('Stop()');
+    }
+}
