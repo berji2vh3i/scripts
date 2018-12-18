@@ -1,0 +1,52 @@
+let prediction, baseBetAmount, betAmount, direction, balance, profit;
+(function start() {
+    prediction = prompt("Input PREDICTION:", "50");
+    baseBetAmount = prompt("Input base BET AMOUNT:", "0.00000000");
+    betAmount = baseBetAmount;
+    direction = prompt("Input DERECTION:", "<");
+    balance = $("#form-balance").val();
+    profit = 0;
+    setTimeout(function () {
+        dobet();
+    }, 2e2);
+})();
+
+function dobet() {
+    let clientSeed = $("#form-client-seed").val();
+    let serverSeedHash = $("#form-server-seed-hash").val();
+    $.post("api/", {
+        req: "roll",
+        clientSeed: clientSeed,
+        serverSeedHash: serverSeedHash,
+        prediction: prediction,
+        betAmount: betAmount,
+        direction: direction
+    }, (response) => {
+        if (response.error) {
+            $("#alert").text(response.msg);
+            setTimeout(() => {
+                $("#alert").text("");
+            }, 2e3);
+        }
+        else {
+            let result;
+            response.profit >= 0 ? result = "win" : result = "lose";
+            balance = response.balance;
+            profit += parseFloat(response.profit);
+            console.clear();
+            console.log("Betting " + betAmount.toFixed(8) + " at " + direction + prediction + " -> " + result + " " + response.profit.toFixed(8));
+            console.log("Balance: " + balance);
+            console.log("Profit: " + profit.toFixed(8));
+            if (response.profit >= 0) {
+                betAmount = baseBetAmount;
+            }
+            else {
+                betAmount *= 2;
+            }
+            $("#form-server-seed-hash").val(response.serverSeedHash);
+            setTimeout(function () {
+                dobet();
+            }, 2e2);
+        }
+    });
+}
